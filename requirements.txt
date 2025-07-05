@@ -4,3 +4,4 @@ pytz
 pandas
 python-dotenv
 plotly
+openpyxl
