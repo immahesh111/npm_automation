@@ -891,7 +891,7 @@ else:
                 }
                 st.markdown(f"""
                     <style>
-                        [data-testid="stExpander"][id*="{data['_id']}"] {{
+                        [data-testid="stExpander"] {{
                             --expander-bg-color: {status_colors.get(status, status_colors['critical'])} !important;
                         }}
                     </style>
@@ -945,25 +945,27 @@ else:
                         "tickets": {"$exists": True, "$ne": []}
                     }
                     tickets = []
+                    seen_ticket_ids = set()
                     for doc in db[line_name].find(ticket_query):
                         for ticket in doc.get("tickets", []):
                             if (ticket["status"] == "Open" and
                                 ticket["priority"] in ticket_priority_filter and
-                                ticket["issue_type"] in issue_type_filter):
+                                ticket["issue_type"] in issue_type_filter and
+                                ticket["ticket_id"] not in seen_ticket_ids):
                                 if search_query:
                                     if any(search_query.lower() in str(ticket.get(field, "")).lower()
-                                           for field in ["ticket_id", "description", "issue_type"]):
+                                        for field in ["ticket_id", "description", "issue_type"]):
                                         tickets.append(ticket)
+                                        seen_ticket_ids.add(ticket["ticket_id"])
                                 else:
                                     tickets.append(ticket)
-                    
+                                    seen_ticket_ids.add(ticket["ticket_id"])
+
                     if tickets:
                         st.markdown(f"### 🎫 Tickets ({len(tickets)})")
                         for idx, ticket in enumerate(tickets):
                             ticket_class = "ticket-open" if ticket["status"] == "Open" else "ticket-closed"
                             priority_class = f"priority-{ticket['priority'].lower()}"
-                            # Use a unique key combining ticket_id, line_name, and index
-                            button_key = f"view_{ticket['ticket_id']}_{line_name}_{idx}"
                             col_ticket1, col_ticket2 = st.columns([4, 1])
                             with col_ticket1:
                                 st.markdown(f"""
@@ -982,6 +984,7 @@ else:
                                 </div>
                                 """, unsafe_allow_html=True)
                             with col_ticket2:
+                                button_key = f"view_{ticket['ticket_id']}_{ticket['line_name']}_{idx}"
                                 if st.button("View", key=button_key, use_container_width=True):
                                     st.query_params["ticket_id"] = ticket['ticket_id']
                                     st.rerun()
