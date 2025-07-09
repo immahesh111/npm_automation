@@ -966,7 +966,7 @@ else:
                         # Debug: Log ticket IDs to verify uniqueness
                         st.write(f"Debug: Rendering ticket IDs: {[ticket['ticket_id'] for ticket in tickets]}")
                         for idx, ticket in enumerate(tickets):
-                        ticket_class = "ticket-open" if ticket["status"] == "Open" else "ticket-closed"
+                            ticket_class = "ticket-open" if ticket["status"] == "Open" else "ticket-closed"
                             priority_class = f"priority-{ticket['priority'].lower()}"
                             col_ticket1, col_ticket2 = st.columns([4, 1])
                             with col_ticket1:
