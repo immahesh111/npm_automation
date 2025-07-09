@@ -586,47 +586,40 @@ def process_line(line_name, config):
             driver.quit()
             logging.info(f"WebDriver closed for {line_name}")
 
-def main():
-    while True:
-        results = []
-        for line_name, config in LINES.items():
-            result = process_line(line_name, config)
-            results.append(result)
-            print(f"\nCompleted processing {line_name}\n{'-'*50}")
-        print("\n=== Production Summary ===")
-        successful_results = [r for r in results if r['success']]
-        if not successful_results:
-            print("No successful data collected from any line.")
+def run_data_collection():
+    results = []
+    for line_name, config in LINES.items():
+        result = process_line(line_name, config)
+        results.append(result)
+        print(f"\nCompleted processing {line_name}\n{'-'*50}")
+    print("\n=== Production Summary ===")
+    successful_results = [r for r in results if r['success']]
+    if not successful_results:
+        print("No successful data collected from any line.")
+    else:
+        max_downtime = max(successful_results, key=lambda x: x['down_time'], default={'line_name': 'None', 'down_time': 0})
+        print(f"Line with Highest Downtime: {max_downtime['line_name']} ({max_downtime['down_time']:.2f} minutes)")
+        output_ratios = [(r['line_name'], r['output'] / r['target'] if r['target'] > 0 else 0) for r in successful_results]
+        min_output_ratio = min(output_ratios, key=lambda x: x[1], default=('None', 0))
+        print(f"Line with Lowest Output Relative to Target: {min_output_ratio[0]} (Output/Target Ratio: {min_output_ratio[1]:.2%})")
+        min_performance = min(successful_results, key=lambda x: x['performance'], default={'line_name': 'None', 'performance': 0})
+        print(f"Line with Lowest Performance: {min_performance['line_name']} ({min_performance['performance']:.2f}%)")
+        poor_performance_lines = [r for r in successful_results if r['performance'] < TICKETING_THRESHOLDS['min_performance']]
+        if poor_performance_lines:
+            print(f"\nLines with Poor Performance (Performance < {TICKETING_THRESHOLDS['min_performance']}%):")
+            for line in poor_performance_lines:
+                print(f"  - {line['line_name']}: Performance={line['performance']:.2f}%, Output={line['output']}, Target={line['target']:.2f}")
         else:
-            max_downtime = max(successful_results, key=lambda x: x['down_time'], default={'line_name': 'None', 'down_time': 0})
-            print(f"Line with Highest Downtime: {max_downtime['line_name']} ({max_downtime['down_time']:.2f} minutes)")
-            output_ratios = [(r['line_name'], r['output'] / r['target'] if r['target'] > 0 else 0) for r in successful_results]
-            min_output_ratio = min(output_ratios, key=lambda x: x[1], default=('None', 0))
-            print(f"Line with Lowest Output Relative to Target: {min_output_ratio[0]} (Output/Target Ratio: {min_output_ratio[1]:.2%})")
-            min_performance = min(successful_results, key=lambda x: x['performance'], default={'line_name': 'None', 'performance': 0})
-            print(f"Line with Lowest Performance: {min_performance['line_name']} ({min_performance['performance']:.2f}%)")
-            poor_performance_lines = [r for r in successful_results if r['performance'] < TICKETING_THRESHOLDS['min_performance']]
-            if poor_performance_lines:
-                print(f"\nLines with Poor Performance (Performance < {TICKETING_THRESHOLDS['min_performance']}%):")
-                for line in poor_performance_lines:
-                    print(f"  - {line['line_name']}: Performance={line['performance']:.2f}%, Output={line['output']}, Target={line['target']:.2f}")
-            else:
-                print(f"\nNo lines have performance below {TICKETING_THRESHOLDS['min_performance']}%.")
-            all_tickets = [ticket for result in results for ticket in result.get('tickets', [])]
-            if all_tickets:
-                print(f"\n=== Ticket Summary ===")
-                print(f"Total Tickets Generated: {len(all_tickets)}")
-                for ticket in all_tickets:
-                    print(f"  - Ticket {ticket['ticket_id']}: {ticket['issue_type']} on {ticket['line_name']} - {ticket['description']} (Priority: {ticket['priority']}, Status: {ticket['status']})")
-            else:
-                print("\nNo tickets generated.")
-        
-        # Sleep until the next hour
-        now = datetime.now(pytz.timezone('Asia/Kolkata'))
-        next_run = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-        sleep_seconds = (next_run - now).total_seconds()
-        logging.info(f"Sleeping for {sleep_seconds} seconds until {next_run}")
-        time.sleep(sleep_seconds)
+            print(f"\nNo lines have performance below {TICKETING_THRESHOLDS['min_performance']}%.")
+        all_tickets = [ticket for result in results for ticket in result.get('tickets', [])]
+        if all_tickets:
+            print(f"\n=== Ticket Summary ===")
+            print(f"Total Tickets Generated: {len(all_tickets)}")
+            for ticket in all_tickets:
+                print(f"  - Ticket {ticket['ticket_id']}: {ticket['issue_type']} on {ticket['line_name']} - {ticket['description']} (Priority: {ticket['priority']}, Status: {ticket['status']})")
+        else:
+            print("\nNo tickets generated.")
+    return results
 
 if __name__ == "__main__":
-    main()
+    run_data_collection()

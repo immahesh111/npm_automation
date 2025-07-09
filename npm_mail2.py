@@ -17,7 +17,26 @@ SMTP_PORT = 587
 SMTP_USERNAME = "engg.datanalytics.padget@dixoninfo.com"
 SMTP_PASSWORD = "fewd ihjy vqjh xavy"
 FROM_EMAIL = "engg.datanalytics.padget@dixoninfo.com"
-TO_EMAILS = ["rajgopalr.padget@dixoninfo.com", "harishk.padget@dixoninfo.com", "themahiece@gmail.com"]
+TO_EMAILS = [
+    "smtmis.padget68@dixoninfo.com",
+    "ppc.padget68@dixoninfo.com",
+    "karuna.padget@dixoninfo.com",
+    "ie.padget68@dixoninfo.com",
+    "rahul.padget68@dixoninfo.com",
+    "rajeev.padget@dixoninfo.com",
+    "praveen.padget68@dixoninfo.com",
+    "deepakgaur.padget@dixoninfo.com",
+    "deepak.s@dixoninfo.com",
+    "sangeetg.padget@dixoninfo.com",
+    "raushansingh.padget@dixoninfo.com",
+    "pavann.padget@dixoninfo.com",
+    "smtkitting.padget68@dixoninfo.com",
+    "bharatdash.padget@dixoninfo.com",
+    "rajgopalr.padget@dixoninfo.com",
+    "harishk.padget@dixoninfo.com",
+    "themahiece@gmail.com",
+]
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
