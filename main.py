@@ -945,7 +945,7 @@ else:
                         "tickets": {"$exists": True, "$ne": []}
                     }
                     tickets = []
-                    seen_ticket_ids = set()
+                    seen_ticket_ids = set()  # Track unique ticket IDs to prevent duplicates
                     for doc in db[line_name].find(ticket_query):
                         for ticket in doc.get("tickets", []):
                             if (ticket["status"] == "Open" and
@@ -963,8 +963,10 @@ else:
 
                     if tickets:
                         st.markdown(f"### 🎫 Tickets ({len(tickets)})")
+                        # Debug: Log ticket IDs to verify uniqueness
+                        st.write(f"Debug: Rendering ticket IDs: {[ticket['ticket_id'] for ticket in tickets]}")
                         for idx, ticket in enumerate(tickets):
-                            ticket_class = "ticket-open" if ticket["status"] == "Open" else "ticket-closed"
+                        ticket_class = "ticket-open" if ticket["status"] == "Open" else "ticket-closed"
                             priority_class = f"priority-{ticket['priority'].lower()}"
                             col_ticket1, col_ticket2 = st.columns([4, 1])
                             with col_ticket1:
@@ -984,7 +986,8 @@ else:
                                 </div>
                                 """, unsafe_allow_html=True)
                             with col_ticket2:
-                                button_key = f"view_{ticket['ticket_id']}_{ticket['line_name']}_{idx}"
+                                # Create a unique key using ticket_id, line_name, timestamp, and index
+                                button_key = f"view_{ticket['ticket_id']}_{ticket['line_name']}_{ticket['timestamp'].replace(':', '-')}_{idx}"
                                 if st.button("View", key=button_key, use_container_width=True):
                                     st.query_params["ticket_id"] = ticket['ticket_id']
                                     st.rerun()
